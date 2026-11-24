@@ -137,7 +137,6 @@ header p {
   flex-direction: column;
   z-index: 2;
   cursor: pointer;
-  box-shadow: 0 4px 8px #0007;
 }
 
 .seat small {
@@ -147,11 +146,15 @@ header p {
   color: #aaa;
 }
 
+/* HERO */
+
 .seat.hero {
   background: #7d36a8;
   border-color: #d18aff;
   box-shadow: 0 0 15px #a94be477;
 }
+
+/* VILÃO */
 
 .seat.villain {
   background: #b45a23;
@@ -198,33 +201,6 @@ header p {
   left: 5%;
 }
 
-/* BUTTONS */
-
-.controls {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-button.action {
-  flex: 1;
-  border: none;
-  border-radius: 12px;
-  padding: 15px 8px;
-  background: #292930;
-  color: white;
-  font-size: 15px;
-  font-weight: bold;
-}
-
-button.action:active {
-  background: #45454c;
-}
-
-.clear {
-  background: #3a3030 !important;
-}
-
 /* FOOTER */
 
 .footer {
@@ -256,9 +232,16 @@ button.action:active {
 
 <body>
 
+<header>
+  <h1>POKER GRIND CHART</h1>
+  <p>2nd ACT vs REG</p>
+</header>
 
 <div class="container">
 
+  <div class="range-title" id="rangeTitle">
+    Selecione as posições
+  </div>
 
   <div class="chart" id="chart"></div>
 
@@ -266,6 +249,7 @@ button.action:active {
     Toque primeiro na posição Hero
   </div>
 
+  <div class="table-title">MESA 6-MAX</div>
 
   <div class="instructions">
     1º toque: Hero · 2º toque: Vilão
@@ -312,8 +296,6 @@ button.action:active {
 
   </div>
 
-  
-
 </div>
 
 <div class="footer">
@@ -321,6 +303,10 @@ button.action:active {
 </div>
 
 <script>
+
+/* ==============================
+   TABELAS DISPONÍVEIS
+============================== */
 
 const charts = [
   {name:"BB x SB", col:0, row:0},
@@ -339,52 +325,116 @@ const charts = [
   {name:"IP x UTG", col:3, row:2}
 ];
 
+/* ==============================
+   ESTADO DA SELEÇÃO
+============================== */
+
 let hero = null;
 let villain = null;
+
+/* ==============================
+   ELEMENTOS
+============================== */
 
 const chart = document.getElementById("chart");
 const rangeTitle = document.getElementById("rangeTitle");
 const status = document.getElementById("status");
 const tableCenter = document.getElementById("tableCenter");
 
+/* ==============================
+   MOSTRAR IMAGEM DO RANGE
+============================== */
+
 function setChart(item) {
+
   const x = item.col * 100 / 3;
   const y = item.row * 100 / 2;
 
   chart.style.backgroundPosition = `${x}% ${y}%`;
 }
 
+/* ==============================
+   IDENTIFICAR CONFRONTO
+============================== */
+
 function findChart(heroPosition, villainPosition) {
 
-  const pair = [heroPosition, villainPosition];
+  /* Normaliza a dupla para que
+     a ordem não importe nos confrontos específicos */
 
-  const mappings = {
-    "BB|SB": "BB x SB",
+  const pair = [heroPosition, villainPosition].sort();
+  const key = pair.join("|");
+
+  /* CONFRONTOS ESPECÍFICOS */
+
+  const specificMappings = {
+
     "BB|BTN": "BB x BTN",
     "BB|CO": "BB x CO",
     "BB|HJ": "BB x HJ",
+    "BB|SB": "BB x SB",
     "BB|UTG": "BB x UTG",
-
-    "SB|BTN": "SB x BTN",
-    "SB|CO": "SB x CO",
-    "SB|HJ": "SB x HJ",
-    "SB|UTG": "SB x UTG",
 
     "BTN|CO": "BTN x CO",
 
-    "HJ|IP": "IP x HJ",
-    "UTG|IP": "IP x UTG"
+    "BTN|SB": "SB x BTN",
+    "CO|SB": "SB x CO",
+    "HJ|SB": "SB x HJ",
+    "SB|UTG": "SB x UTG"
+
   };
 
-  const key = pair.sort().join("|");
-  const chartName = mappings[key];
+  /* Procura confronto específico */
 
-  if (!chartName) {
-    return null;
+  const specificName = specificMappings[key];
+
+  if (specificName) {
+    return charts.find(c => c.name === specificName);
   }
 
-  return charts.find(c => c.name === chartName);
+  /* ==============================
+     IP x HJ
+
+     Hero CO ou BTN
+     Vilão HJ
+  ============================== */
+
+  if (
+    villainPosition === "HJ" &&
+    (heroPosition === "CO" ||
+     heroPosition === "BTN")
+  ) {
+
+    return charts.find(c => c.name === "IP x HJ");
+
+  }
+
+  /* ==============================
+     IP x UTG
+
+     Hero HJ, CO ou BTN
+     Vilão UTG
+  ============================== */
+
+  if (
+    villainPosition === "UTG" &&
+    (heroPosition === "HJ" ||
+     heroPosition === "CO" ||
+     heroPosition === "BTN")
+  ) {
+
+    return charts.find(c => c.name === "IP x UTG");
+
+  }
+
+  /* Sem tabela correspondente */
+
+  return null;
 }
+
+/* ==============================
+   ATUALIZAR ASSENTOS
+============================== */
 
 function updateSeats() {
 
@@ -397,52 +447,95 @@ function updateSeats() {
     small.textContent = "";
 
     if (position === hero) {
+
       seat.classList.add("hero");
       small.textContent = "HERO";
+
     }
 
     if (position === villain) {
+
       seat.classList.add("villain");
       small.textContent = "VILÃO";
+
     }
 
   });
 }
 
+/* ==============================
+   ATUALIZAR INTERFACE
+============================== */
+
 function updateDisplay() {
 
   updateSeats();
 
-  if (!hero) {
-    rangeTitle.textContent = "Selecione as posições";
-    status.textContent = "Toque primeiro na posição Hero";
+  /* Nenhuma posição selecionada */
 
-    tableCenter.innerHTML = "SELECIONE<br>HERO E VILÃO";
+  if (!hero) {
+
+    rangeTitle.textContent = "Selecione as posições";
+
+    status.textContent =
+      "Toque primeiro na posição Hero";
+
+    tableCenter.innerHTML =
+      "SELECIONE<br>HERO E VILÃO";
+
     return;
   }
+
+  /* Hero selecionado, falta Vilão */
 
   if (!villain) {
-    rangeTitle.textContent = hero + " — Hero";
-    status.textContent = "Agora toque na posição do Vilão";
 
-    tableCenter.innerHTML = "HERO:<br>" + hero;
+    rangeTitle.textContent =
+      hero + " — Hero";
+
+    status.textContent =
+      "Agora toque na posição do Vilão";
+
+    tableCenter.innerHTML =
+      "HERO:<br>" + hero;
+
     return;
   }
 
-  rangeTitle.textContent = hero + " vs " + villain;
+  /* Hero e Vilão selecionados */
+
+  rangeTitle.textContent =
+    hero + " vs " + villain;
+
   tableCenter.innerHTML =
-    "HERO: " + hero + "<br>VILÃO: " + villain;
+    "HERO: " + hero +
+    "<br>VILÃO: " + villain;
+
+  /* Busca a tabela correspondente */
 
   const item = findChart(hero, villain);
 
   if (item) {
+
     setChart(item);
-    status.textContent = "Confronto identificado";
+
+    rangeTitle.textContent = item.name;
+
+    status.textContent =
+      "Range correspondente carregado";
+
   } else {
+
     status.textContent =
       "Este confronto ainda não possui tabela configurada";
+
   }
+
 }
+
+/* ==============================
+   CLIQUE NOS ASSENTOS
+============================== */
 
 document.querySelectorAll(".seat").forEach(seat => {
 
@@ -450,25 +543,41 @@ document.querySelectorAll(".seat").forEach(seat => {
 
     const position = seat.dataset.seat;
 
+    /* Primeiro clique: Hero */
+
     if (!hero) {
+
       hero = position;
       villain = null;
+
     }
+
+    /* Segundo clique: Vilão */
 
     else if (!villain) {
 
       if (position === hero) {
+
         hero = null;
         villain = null;
+
       } else {
+
         villain = position;
+
       }
 
     }
 
+    /* Terceiro clique:
+       reinicia a seleção usando
+       a nova posição como Hero */
+
     else {
+
       hero = position;
       villain = null;
+
     }
 
     updateDisplay();
@@ -477,11 +586,9 @@ document.querySelectorAll(".seat").forEach(seat => {
 
 });
 
-function clearSelection() {
-  hero = null;
-  villain = null;
-  updateDisplay();
-}
+/* ==============================
+   INICIALIZAÇÃO
+============================== */
 
 updateDisplay();
 
