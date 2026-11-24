@@ -18,23 +18,6 @@ body {
   font-family: Arial, sans-serif;
 }
 
-header {
-  text-align: center;
-  padding: 18px 10px 12px;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: 1px;
-}
-
-header p {
-  margin: 6px 0 0;
-  color: #92929b;
-  font-size: 12px;
-}
-
 .container {
   max-width: 650px;
   margin: auto;
@@ -47,7 +30,8 @@ header p {
   text-align: center;
   font-weight: bold;
   font-size: 21px;
-  margin: 12px 0;
+  margin: 0;
+  min-height: 0;
 }
 
 .chart {
@@ -69,14 +53,7 @@ header p {
   min-height: 20px;
 }
 
-/* TABLE */
-
-.table-title {
-  text-align: center;
-  margin: 25px 0 8px;
-  font-size: 18px;
-  font-weight: bold;
-}
+/* INSTRUCTIONS */
 
 .instructions {
   text-align: center;
@@ -213,6 +190,7 @@ header p {
 /* MOBILE */
 
 @media (max-width: 380px) {
+
   .poker-table {
     height: 300px;
   }
@@ -226,35 +204,32 @@ header p {
   .seat small {
     font-size: 9px;
   }
+
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>POKER GRIND CHART</h1>
-  <p>2nd ACT vs REG</p>
-</header>
-
 <div class="container">
 
-  <div class="range-title" id="rangeTitle">
-    Selecione as posições
-  </div>
+  <!-- TÍTULO DINÂMICO DO RANGE -->
+  <div class="range-title" id="rangeTitle"></div>
 
+  <!-- MATRIZ DE MÃOS -->
   <div class="chart" id="chart"></div>
 
+  <!-- MENSAGEM DE ORIENTAÇÃO -->
   <div class="status" id="status">
     Toque primeiro na posição Hero
   </div>
 
-  <div class="table-title">MESA 6-MAX</div>
-
+  <!-- INSTRUÇÃO -->
   <div class="instructions">
     1º toque: Hero · 2º toque: Vilão
   </div>
 
+  <!-- MESA -->
   <div class="poker-table">
 
     <div class="table-oval"></div>
@@ -326,7 +301,7 @@ const charts = [
 ];
 
 /* ==============================
-   ESTADO DA SELEÇÃO
+   SELEÇÃO
 ============================== */
 
 let hero = null;
@@ -342,7 +317,7 @@ const status = document.getElementById("status");
 const tableCenter = document.getElementById("tableCenter");
 
 /* ==============================
-   MOSTRAR IMAGEM DO RANGE
+   MOSTRAR RANGE
 ============================== */
 
 function setChart(item) {
@@ -351,6 +326,7 @@ function setChart(item) {
   const y = item.row * 100 / 2;
 
   chart.style.backgroundPosition = `${x}% ${y}%`;
+
 }
 
 /* ==============================
@@ -358,9 +334,6 @@ function setChart(item) {
 ============================== */
 
 function findChart(heroPosition, villainPosition) {
-
-  /* Normaliza a dupla para que
-     a ordem não importe nos confrontos específicos */
 
   const pair = [heroPosition, villainPosition].sort();
   const key = pair.join("|");
@@ -384,20 +357,13 @@ function findChart(heroPosition, villainPosition) {
 
   };
 
-  /* Procura confronto específico */
-
   const specificName = specificMappings[key];
 
   if (specificName) {
     return charts.find(c => c.name === specificName);
   }
 
-  /* ==============================
-     IP x HJ
-
-     Hero CO ou BTN
-     Vilão HJ
-  ============================== */
+  /* IP x HJ */
 
   if (
     villainPosition === "HJ" &&
@@ -409,12 +375,7 @@ function findChart(heroPosition, villainPosition) {
 
   }
 
-  /* ==============================
-     IP x UTG
-
-     Hero HJ, CO ou BTN
-     Vilão UTG
-  ============================== */
+  /* IP x UTG */
 
   if (
     villainPosition === "UTG" &&
@@ -427,9 +388,8 @@ function findChart(heroPosition, villainPosition) {
 
   }
 
-  /* Sem tabela correspondente */
-
   return null;
+
 }
 
 /* ==============================
@@ -461,21 +421,22 @@ function updateSeats() {
     }
 
   });
+
 }
 
 /* ==============================
-   ATUALIZAR INTERFACE
+   ATUALIZAR TELA
 ============================== */
 
 function updateDisplay() {
 
   updateSeats();
 
-  /* Nenhuma posição selecionada */
+  /* ESTADO INICIAL */
 
   if (!hero) {
 
-    rangeTitle.textContent = "Selecione as posições";
+    rangeTitle.textContent = "";
 
     status.textContent =
       "Toque primeiro na posição Hero";
@@ -484,14 +445,14 @@ function updateDisplay() {
       "SELECIONE<br>HERO E VILÃO";
 
     return;
+
   }
 
-  /* Hero selecionado, falta Vilão */
+  /* HERO SELECIONADO */
 
   if (!villain) {
 
-    rangeTitle.textContent =
-      hero + " — Hero";
+    rangeTitle.textContent = "";
 
     status.textContent =
       "Agora toque na posição do Vilão";
@@ -500,18 +461,14 @@ function updateDisplay() {
       "HERO:<br>" + hero;
 
     return;
+
   }
 
-  /* Hero e Vilão selecionados */
-
-  rangeTitle.textContent =
-    hero + " vs " + villain;
+  /* HERO + VILÃO */
 
   tableCenter.innerHTML =
     "HERO: " + hero +
     "<br>VILÃO: " + villain;
-
-  /* Busca a tabela correspondente */
 
   const item = findChart(hero, villain);
 
@@ -526,6 +483,9 @@ function updateDisplay() {
 
   } else {
 
+    rangeTitle.textContent =
+      hero + " vs " + villain;
+
     status.textContent =
       "Este confronto ainda não possui tabela configurada";
 
@@ -534,7 +494,7 @@ function updateDisplay() {
 }
 
 /* ==============================
-   CLIQUE NOS ASSENTOS
+   CLIQUES NAS POSIÇÕES
 ============================== */
 
 document.querySelectorAll(".seat").forEach(seat => {
@@ -543,7 +503,7 @@ document.querySelectorAll(".seat").forEach(seat => {
 
     const position = seat.dataset.seat;
 
-    /* Primeiro clique: Hero */
+    /* PRIMEIRO CLIQUE: HERO */
 
     if (!hero) {
 
@@ -552,7 +512,7 @@ document.querySelectorAll(".seat").forEach(seat => {
 
     }
 
-    /* Segundo clique: Vilão */
+    /* SEGUNDO CLIQUE: VILÃO */
 
     else if (!villain) {
 
@@ -569,9 +529,8 @@ document.querySelectorAll(".seat").forEach(seat => {
 
     }
 
-    /* Terceiro clique:
-       reinicia a seleção usando
-       a nova posição como Hero */
+    /* TERCEIRO CLIQUE:
+       COMEÇA NOVA SELEÇÃO */
 
     else {
 
