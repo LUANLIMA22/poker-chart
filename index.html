@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101114">
+<title>Poker Grind Chart</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #101114;
+  color: #f2f2f2;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  padding: 20px 16px 12px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 21px;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+header p {
+  color: #92929b;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.container {
+  padding: 12px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.position-title {
+  text-align: center;
+  font-size: 23px;
+  font-weight: bold;
+  margin: 18px 0;
+}
+
+select {
+  width: 100%;
+  background: #222228;
+  color: white;
+  border: 1px solid #393941;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.chart-area {
+  background: #1b1b20;
+  border: 1px solid #303038;
+  border-radius: 14px;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: #9999a3;
+}
+
+.chart-area strong {
+  display: block;
+  color: #f0f0f0;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.navigation {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+button {
+  flex: 1;
+  padding: 16px 10px;
+  border: none;
+  border-radius: 12px;
+  background: #292930;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+button:active {
+  background: #41414a;
+}
+
+.footer {
+  text-align: center;
+  color: #666670;
+  font-size: 11px;
+  padding: 22px 10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>POKER GRIND CHART</h1>
+  <p>2nd ACT vs REG</p>
+</header>
+
+<div class="container">
+
+  <select id="chartSelect"></select>
+
+  <div class="position-title" id="positionTitle"></div>
+
+  <div class="chart-area" id="chartArea">
+    <div>
+      <strong id="chartName"></strong>
+      <p>Em breve: tabela estratégica</p>
+    </div>
+  </div>
+
+  <div class="navigation">
+    <button onclick="previousChart()">◀ Anterior</button>
+    <button onclick="nextChart()">Próximo ▶</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  OFFLINE • POKER GRIND CHART
+</div>
+
+<script>
+const charts = [
+  "BB x SB",
+  "BB x BTN",
+  "BB x CO",
+  "BB x HJ",
+  "BB x UTG",
+  "SB x BTN",
+  "SB x CO",
+  "SB x HJ",
+  "SB x UTG",
+  "BTN x CO",
+  "IP x HJ",
+  "IP x UTG"
+];
+
+let current = 0;
+
+const select = document.getElementById("chartSelect");
+
+charts.forEach((chart, index) => {
+  const option = document.createElement("option");
+  option.value = index;
+  option.textContent = chart;
+  select.appendChild(option);
+});
+
+function updateChart() {
+  select.value = current;
+  document.getElementById("positionTitle").textContent = charts[current];
+  document.getElementById("chartName").textContent = charts[current];
+}
+
+function previousChart() {
+  current = (current - 1 + charts.length) % charts.length;
+  updateChart();
+}
+
+function nextChart() {
+  current = (current + 1) % charts.length;
+  updateChart();
+}
+
+select.addEventListener("change", function() {
+  current = Number(this.value);
+  updateChart();
+});
+
+updateChart();
+</script>
+
+</body>
+</html>
